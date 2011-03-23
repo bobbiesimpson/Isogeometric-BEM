@@ -1,1 +1,3 @@
 This is the README file for isogeometric BEM as coded by Rob Simpson at Cardiff University 2011
+
+It contains matlab code which describes both the geometry and the unknown fields of 2D elastostatic problems using NURBS - the commonly used parametric functions in CAD software.
