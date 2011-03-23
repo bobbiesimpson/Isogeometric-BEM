@@ -102,12 +102,52 @@ function [ presDispDOFs, presTracDOFs, dirichletVals, nonZeroXTracDOFs, nonZeroY
 
 % prescribe our Dirichlet nodes
 
-elms=[1 12] *n + 1;
-sctrX = elConn(elms,1);
+% elms=[1 12] *n + 1;
+% sctrX = elConn(elms,1);
+% sctrX=reshape(sctrX,1,numel(sctrX));
+% 
+% elms=[1 2 11 12]*n + 1;
+% sctrY = elConn(elms,1);
+% sctrY=reshape(sctrY,1,numel(sctrY));
+% 
+% presDispDOFs=sort([sctrX*2-1 sctrY*2]);
+% dirichletVals=zeros(1,length(presDispDOFs));
+% 
+% % Now let's prescribe our tractions - this is everywhere except the two
+% % dirichlet nodes
+% tracEndElms = [1 12]*n;
+% tracStartElms = tracEndElms + 1;
+% sctrX = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
+% sctrX = reshape(sctrX,1, numel(sctrX));
+% 
+% tracEndElms = [1 2 11 12]*n;
+% tracStartElms = tracEndElms + 1;
+% sctrY = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
+% sctrY = reshape(sctrY,1, numel(sctrY));
+% 
+% allTracDOFs = 1:2*max(tracConn(:,end));
+% presTracDOFs = setxor(allTracDOFs, [sctrX*2-1 sctrY*2]);
+% 
+% % and our non-zero trac DOF 
+% prevElmt=6*n;
+% tracElms = 6*n+1:7*n;
+% procElmt=7*n+1;
+% rightSideDOF = unique(reshape(tracConn(tracElms,:),1,numel(tracConn(tracElms,:))));
+% sctrY = [tracConn(prevElmt,end) rightSideDOF tracConn(procElmt,1)];
+% 
+% % and now get the nonzero x and y tractions
+% nonZeroYTracDOFs = sctrY*2;
+% nonZeroXTracDOFs = [];
+
+%% dam example
+
+% prescribe our Dirichlet nodes
+elms=[n+1:2*n (15*n+1):16*n];
+sctrX = elConn(elms,:);
 sctrX=reshape(sctrX,1,numel(sctrX));
 
-elms=[1 2 11 12]*n + 1;
-sctrY = elConn(elms,1);
+elms=1:n;
+sctrY = elConn(elms,:);
 sctrY=reshape(sctrY,1,numel(sctrY));
 
 presDispDOFs=sort([sctrX*2-1 sctrY*2]);
@@ -115,29 +155,40 @@ dirichletVals=zeros(1,length(presDispDOFs));
 
 % Now let's prescribe our tractions - this is everywhere except the two
 % dirichlet nodes
-tracEndElms = [1 12]*n;
-tracStartElms = tracEndElms + 1;
-sctrX = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
+tracEndElms = [n 15*n];
+tracElms = [n+1:2*n (15*n+1):16*n];
+tracStartElms = [1 2*n+1];
+flatEndTracDOF = reshape(tracConn(tracEndElms,:),1,numel(tracConn(tracEndElms,:)));
+flatTracDOF = reshape(tracConn(tracElms,:),1,numel(tracConn(tracElms,:)));
+flatStartTracDOF = reshape(tracConn(tracStartElms,:),1,numel(tracConn(tracStartElms,:)));
+sctrX = [flatEndTracDOF flatTracDOF flatStartTracDOF];
 sctrX = reshape(sctrX,1, numel(sctrX));
 
-tracEndElms = [1 2 11 12]*n;
-tracStartElms = tracEndElms + 1;
-sctrY = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
+tracEndElms = 16*n;
+tracElms = 1:n;
+tracStartElms = n+1;
+flatEndTracDOF = reshape(tracConn(tracEndElms,:),1,numel(tracConn(tracEndElms,:)));
+flatTracDOF = reshape(tracConn(tracElms,:),1,numel(tracConn(tracElms,:)));
+flatStartTracDOF = reshape(tracConn(tracStartElms,:),1,numel(tracConn(tracStartElms,:)));
+sctrY = [flatEndTracDOF flatTracDOF flatStartTracDOF];
 sctrY = reshape(sctrY,1, numel(sctrY));
 
 allTracDOFs = 1:2*max(tracConn(:,end));
 presTracDOFs = setxor(allTracDOFs, [sctrX*2-1 sctrY*2]);
 
 % and our non-zero trac DOF 
-prevElmt=6*n;
-tracElms = 6*n+1:7*n;
-procElmt=7*n+1;
-rightSideDOF = unique(reshape(tracConn(tracElms,:),1,numel(tracConn(tracElms,:))));
-sctrY = [tracConn(prevElmt,end) rightSideDOF tracConn(procElmt,1)];
+tracEndElms = 10*n;
+tracElms = (10*n+1):14*n;
+tracStartElms = 14*n+1;
+flatEndTracDOF = reshape(tracConn(tracEndElms,:),1,numel(tracConn(tracEndElms,:)));
+flatTracDOF = reshape(tracConn(tracElms,:),1,numel(tracConn(tracElms,:)));
+flatStartTracDOF = reshape(tracConn(tracStartElms,:),1,numel(tracConn(tracStartElms,:)));
+sctrX = [flatEndTracDOF flatTracDOF flatStartTracDOF];
+sctrX = reshape(sctrX,1, numel(sctrX));
 
 % and now get the nonzero x and y tractions
-nonZeroYTracDOFs = sctrY*2;
-nonZeroXTracDOFs = [];
+nonZeroXTracDOFs = sctrX*2-1;
+nonZeroYTracDOFs = [];
 
 end
 

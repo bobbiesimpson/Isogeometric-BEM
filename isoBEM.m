@@ -42,8 +42,8 @@ if infinitePlate
     tractionX=0;
     tractionY=0;
 else
-    tractionX=0;   % presribed traction on upper and left surfaces
-    tractionY=-10;
+    tractionX=100;   % presribed traction on upper and left surfaces
+    tractionY=0;
 end
 
 % ------------------------------------
@@ -85,7 +85,7 @@ for mesh=2:inc:numMeshes
     % -----------------------------------
     
     ngp_s=12;       % # gauss points for singular integrals
-    ngp_r=12;        % # gauss points for regular integrals
+    ngp_r=8;        % # gauss points for regular integrals
     
     H=zeros(nDof,nDof);             % initialise our global matrices
     A=zeros(nDof,nDof);
