@@ -1,3 +1,16 @@
 This is the README file for isogeometric BEM as coded by Rob Simpson at Cardiff University 2011
 
 It contains matlab code which describes both the geometry and the unknown fields of 2D elastostatic problems using NURBS - the commonly used parametric functions in CAD software.
+
+Importantly, we need to compile some C code before we can get these matlab routines to run. So before we go playing with these scripts, do the following:
+
+1. change into the directory C_files
+2. run the command 'mex NURBSbasis.c NURBS.c'
+3. run the command 'mex NURBSinterpolation.c NURBS.c'
+
+The last two create 'mex' files which are compiled code allowing matlab to interface with nice and quick C code. The reason I have done this is because
+
+1. The NURBS code is given in C in the book by Piegl and Tiller
+2. Due to the recursive nature of the formulas, it is much faster to do this computation in C rather than matlab.
+
+Once you have done this, you can change back into the isoBEM directory and run the script isoBEM.m - you should see a bent spanner!

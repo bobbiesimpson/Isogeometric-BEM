@@ -85,7 +85,7 @@ for mesh=2:inc:numMeshes
     % -----------------------------------
     
     ngp_s=12;       % # gauss points for singular integrals
-    ngp_r=6;        % # gauss points for regular integrals
+    ngp_r=12;        % # gauss points for regular integrals
     
     H=zeros(nDof,nDof);             % initialise our global matrices
     A=zeros(nDof,nDof);
