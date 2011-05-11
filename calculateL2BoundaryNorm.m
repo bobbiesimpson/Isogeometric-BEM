@@ -41,7 +41,7 @@ for element=1:ne
         theta=atan2(pointCoords(2),pointCoords(1));
         exactDisp=getExactDisplacements(r,theta,traction);
         
-        approxDisp=N*[displacement(uxDof)' displacement(uyDof)'];
+        approxDisp=N*[displacement(uxDof) displacement(uyDof)];
         
         L2Norm=L2Norm + norm(approxDisp-exactDisp)*gwt(pt)*jacob;
         L2exactNorm=L2exactNorm + norm(exactDisp) * gwt(pt)*jacob;

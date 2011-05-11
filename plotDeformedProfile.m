@@ -4,19 +4,17 @@ function plotDeformedProfile( displacement, nPts, controlPts, infTraction )
 % deformed profile using NURBS 
 
 global p knotVec 
-
 factor=10; % for exaggerating displacements
 
-newControlPts=controlPts(1:nPts,1:2)+factor*[displacement(1:2:end)' displacement(2:2:end)'];
-newControlCoords=[newControlPts; newControlPts(1,:)];   % add first entry again (for plotting)
-
+newControlPts=controlPts(1:nPts,1:2)+factor*[displacement(1:2:end) displacement(2:2:end)];
+newControlCoords=[newControlPts; newControlPts(1,:)];   % add first entry again (for plotting
 numPts=400;
 xi=linspace(0,max(knotVec),numPts);
 
 extrapPoints = zeros(numPts,2); x = zeros(numPts,1); y=zeros(numPts,1);
 for point=1:numPts
-    [extrapPoints(point,1)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,1)', controlPts(:,3)');
-    [extrapPoints(point,2)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,2)', controlPts(:,3)');  
+    [extrapPoints(point,1)] = NURBSinterpolation(xi(point), p, knotVec, newControlCoords(:,1)', controlPts(:,3)');
+    [extrapPoints(point,2)] = NURBSinterpolation(xi(point), p, knotVec, newControlCoords(:,2)', controlPts(:,3)');  
     x(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,1)', controlPts(:,3)');
     y(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,2)', controlPts(:,3)');
 end
@@ -44,7 +42,9 @@ theta=atan2(y,x)';
 % points(:,1)=x+disp(:,1).*factor;
 % points(:,2)=y+disp(:,2).*factor;
 
-figure(2); hold on
+
+figure(2); 
+hold on
 plot(extrapPoints(:,1), extrapPoints(:,2), 'k--')
 hold off
 

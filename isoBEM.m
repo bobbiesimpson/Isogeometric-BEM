@@ -33,7 +33,7 @@ infinitePlate=0;     % if this flag is set, we apply the infinite plate traction
                         
 % these parameters are for the plate with a hole problem                       
 tractionAtInfinity=100;
-exactTracInterval=[2/3 1];
+exactTracInterval=[1/2 3/4];
 
 % and this is for the L-plate problem
 %exactTracInterval = [0 1/2; 5/6 1];     % the knot interval over which exact tractions are applied
@@ -43,7 +43,7 @@ if infinitePlate
     tractionY=0;
 else
     tractionX=0;   % presribed traction on upper and left surfaces
-    tractionY=-10;
+    tractionY=200;
 end
 
 % ------------------------------------
@@ -52,16 +52,18 @@ end
 
 p=2;        % degree of basis functions
 
-numMeshes=2; inc=5;
+numMeshes=3; inc=5;
 
 L2relNorm=zeros(ceil(numMeshes/inc),2);
 
 meshCounter=0;
 
-for mesh=2:inc:numMeshes
+for mesh=3:inc:numMeshes
     meshCounter=meshCounter+1;
     refinement=mesh;
-    [ controlPts, knotVec, collocPts, collocCoords, bsFnConn, dispConn, tracConn, elRange, tracDispConn ]=generateBEMmesh( p, refinement );
+    [ NURBScurve ]=generateBEMmesh( p, refinement );
+    
+    keyboard
     
     nDof=length(collocPts)*2;    % number of Dof (2 x number of control points)
     ne=size(dispConn,1);         % number of 'elements'
@@ -169,7 +171,7 @@ for mesh=2:inc:numMeshes
     presXTracs = ones(length(nonZeroXTracDOFs),1) * tractionX;
     presYTracs = ones(length(nonZeroYTracDOFs),1) * tractionY;
     
-   % plotPrescribedTractions( nonZeroXTracDOFs, nonZeroYTracDOFs, tracDispConnDOF,presXTracs, presYTracs)
+   %plotPrescribedTractions( nonZeroXTracDOFs, nonZeroYTracDOFs, tracDispConnDOF,presXTracs, presYTracs)
     
     % put all the knowns on the right hand side
     z=z-H(:,presDispDOFs)*dirichletVals';
@@ -178,18 +180,27 @@ for mesh=2:inc:numMeshes
     
     soln=A\z;   % and solve
     
-    displacements=zeros(nDof,1);
+    displacement=zeros(nDof,1);
     displacement(presDispDOFs)=dirichletVals;
-    displacement(unknownDispDofs)=soln(unknownDispDofs);
+    displacement(unknownDispDofs)=soln(unknownDispDofs)
 
-    soln(globalTracUnknownDOF)=soln(globalTracUnknownDOF)*SF;  % multiply the tractions by the scale factor
+    soln(globalTracUnknownDOF)=soln(globalTracUnknownDOF)*SF  % multiply the tractions by the scale factor
     
     % plot the deformed profile
     plotDeformedProfile( displacement, nPts, controlPts, tractionAtInfinity )
 
-    L2relNorm(meshCounter,1)=nDof;
-    L2relNorm(meshCounter,2)=calculateL2BoundaryNorm( displacement, dispConn, bsFnConn, tractionAtInfinity);
+    %L2relNorm(meshCounter,1)=nDof;
+    %L2relNorm(meshCounter,2)=calculateL2BoundaryNorm( displacement, dispConn, bsFnConn, tractionAtInfinity);
+    
+    elements=2*mesh+1:3*mesh;
+    sctrY = dispConn(elements,:);
+    sctrY = reshape(sctrY,1,numel(sctrY));
+    topEdgeDisp = displacement(sctrY*2)
+    
+    fprintf('Condition number of A matrix %2.2f\n', cond(A))
 end
+
+
 % profile viewer
 % profsave(profile('info'),'profile_results')
 % 
