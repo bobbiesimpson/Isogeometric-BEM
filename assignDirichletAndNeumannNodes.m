@@ -1,5 +1,5 @@
-function [ presDispDOFs, presTracDOFs, dirichletVals, nonZeroXTracDOFs, nonZeroYTracDOFs ] = assignDirichletAndNeumannNodes(n, elConn, tracConn)
-
+function [ presDispDOFs, presTracDOFs, dirichletVals, nonZeroXTracDOFs, nonZeroYTracDOFs ] = ...
+    assignDirichletAndNeumannNodes(n, dispConn, tracConn, elRange, BoundCondition)
 % we work out the nodes where disp is specified and trac specified
 
 % n: number of elements per line
@@ -188,50 +188,125 @@ function [ presDispDOFs, presTracDOFs, dirichletVals, nonZeroXTracDOFs, nonZeroY
 
 %% crack problem
 
-% first prescribe out dirichlet nodes
-elms=1:n;    
-sctrY=elConn(elms,:);
-sctrY=unique(reshape(sctrY,1,numel(sctrY)));
+% % first prescribe out dirichlet nodes
+% elms=1:n;    
+% sctrY=elConn(elms,:);
+% sctrY=unique(reshape(sctrY,1,numel(sctrY)));
+% 
+% % x-disps
+% sctrX=elConn(7*n,end);
+% sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+% 
+% presDispDOFs=sort([sctrX*2-1 sctrY*2]);
+% dirichletVals=zeros(1,length(presDispDOFs));
+% 
+% 
+% % and now for the tractions
+% 
+% % x-tracs
+% elms=1:7*n;
+% sctrX=tracConn(elms,:);
+% sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+% 
+% lastNode=tracConn(end,end);
+% sctrX = setxor(sctrX,lastNode);
+% 
+% % y-tracs
+% elms=(n+1):(7*n);
+% sctrY=tracConn(elms,:);
+% sctrY=unique(reshape(sctrY,1,numel(sctrY)));
+% 
+% %lastNode=tracConn(end,end);
+% %sctrY = setxor(sctrY,lastNode);
+% 
+% presTracDOFs=sort([sctrX*2-1 sctrY*2]);
+% 
+% % work out the traction DOFs where we specify a nonzero traction
+% 
+% % nonzero y-tractions
+% elms=(2*n+1):3*n;
+% sctrY=tracConn(elms,:);
+% sctrY=reshape(sctrY,1,numel(sctrY));
+% nonZeroYTracDOFs=unique(sctrY*2);
+% 
+% % nonzero x-tractions
+% nonZeroXTracDOFs=[];
 
-% x-disps
-sctrX=elConn(7*n,end);
-sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+%% coupled crack problem
+
+% ---------------------------
+% ------- Displacements -----
+% ---------------------------
+
+zeroXDispRange = BoundCondition.zeroXDispRange;
+zeroYDispRange = BoundCondition.zeroYDispRange;
+
+sctrX = []; sctrY = [];
+% first find our "scatter" X and Y vectors
+for c=1:size(zeroXDispRange,1)  % loop over number of ranges we specify x disps
+    a = find(elRange(:,1) >= zeroXDispRange(c,1));
+    b = find(elRange(:,2) <= zeroXDispRange(c,2));
+    xDispEls = intersect(a,b);
+    sctrXTmp = dispConn(xDispEls,:);
+    sctrX=[unique(reshape(sctrXTmp,1,numel(sctrXTmp))) sctrX];
+end
+
+for c=1:size(zeroYDispRange,1)  % loop over number of ranges we specify x disps
+    a = find(elRange(:,1) >= zeroYDispRange(c,1));
+    b = find(elRange(:,2) <= zeroYDispRange(c,2));
+    yDispEls = intersect(a,b);
+    sctrYTmp = dispConn(yDispEls,:);
+    sctrY=[unique(reshape(sctrYTmp,1,numel(sctrYTmp))) sctrY];
+end
 
 presDispDOFs=sort([sctrX*2-1 sctrY*2]);
 dirichletVals=zeros(1,length(presDispDOFs));
 
+% -----------------------
+% ------- Tractions -----
+% -----------------------
 
-% and now for the tractions
+presXTracRange = BoundCondition.presXTracRange;
+presYTracRange = BoundCondition.presYTracRange;
 
-% x-tracs
-elms=1:7*n;
-sctrX=tracConn(elms,:);
-sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+sctrX = []; sctrY = [];
+% first find our "scatter" X and Y vectors
+for c=1:size(presXTracRange,1)  % loop over number of ranges we specify x disps
+    a = find(elRange(:,1) >= presXTracRange(c,1));
+    b = find(elRange(:,2) <= presXTracRange(c,2));
+    xTracEls = intersect(a,b);
+    sctrXTmp = tracConn(xTracEls,:);
+    sctrX=[unique(reshape(sctrXTmp,1,numel(sctrXTmp))) sctrX];
+end
 
-lastNode=tracConn(end,end);
-sctrX = setxor(sctrX,lastNode);
-
-% y-tracs
-elms=(n+1):(7*n);
-sctrY=tracConn(elms,:);
-sctrY=unique(reshape(sctrY,1,numel(sctrY)));
-
-%lastNode=tracConn(end,end);
-%sctrY = setxor(sctrY,lastNode);
+for c=1:size(presYTracRange,1)  % loop over number of ranges we specify x disps
+    a = find(elRange(:,1) >= presYTracRange(c,1));
+    b = find(elRange(:,2) <= presYTracRange(c,2));
+    yTracEls = intersect(a,b);
+    sctrYTmp = tracConn(yTracEls,:);
+    sctrY=[unique(reshape(sctrYTmp,1,numel(sctrYTmp))) sctrY];
+end
 
 presTracDOFs=sort([sctrX*2-1 sctrY*2]);
 
-% work out the traction DOFs where we specify a nonzero traction
+% --------------------------------
+% ------- Non-zero tractions -----
+% --------------------------------
 
-% nonzero y-tractions
-elms=(2*n+1):3*n;
-sctrY=tracConn(elms,:);
-sctrY=reshape(sctrY,1,numel(sctrY));
-nonZeroYTracDOFs=unique(sctrY*2);
+nonZeroYTracRange = BoundCondition.nonZeroYTracRange;
 
-% nonzero x-tractions
+sctrY = [];
+for c=1:size(nonZeroYTracRange,1)  % loop over number of ranges we specify x disps
+    a = find(elRange(:,1) >= nonZeroYTracRange(c,1));
+    b = find(elRange(:,2) <= nonZeroYTracRange(c,2));
+    yTracEls = intersect(a,b);
+    sctrYTmp = tracConn(yTracEls,:);
+    sctrY=[unique(reshape(sctrYTmp,1,numel(sctrYTmp))) sctrY];
+end
+
+nonZeroYTracDOFs=sort(sctrY*2);
+
 nonZeroXTracDOFs=[];
-
 
 end
 

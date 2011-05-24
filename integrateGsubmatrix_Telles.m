@@ -1,13 +1,14 @@
-function [Gsubmatrix] = integrateGsubmatrix_Telles(ngp, elcoords, bsFnConn, collocCoords, srcXi_param, range)
+function [Gsubmatrix] = integrateGsubmatrix_Telles(ngp, NURBScurve, element, collocCoords, srcXi_param)
     % integrate the G submatrix using Telles' transformation
     
-    global controlPts p knotVec
-    
     [gpt gwt]=lgwt(ngp,-1,1);
-    
-    numBasisFns=length(bsFnConn);
-    N=zeros(1,numBasisFns); dN=zeros(1,numBasisFns);
+
     Gsubmatrix=zeros(2,6);
+    
+    % ------- Curve information ---------
+    range = NURBScurve.elRange(element,:);
+    bsFnConn = NURBScurve.bsFnConn(element,:);
+    elcoords = NURBScurve.controlPts(bsFnConn,1:2);
     
     srcXi=convertToParentCoordSpace(srcXi_param, range);
     xiStar=srcXi^2 - 1;
@@ -19,12 +20,9 @@ function [Gsubmatrix] = integrateGsubmatrix_Telles(ngp, elcoords, bsFnConn, coll
         xi=((gXi-gamBar).^3 + gamBar*(gamBar.^2+3)) / (1+3*gamBar.^2);
         xi_param=convertToParamSpace( xi, range);    % get the gauss point in parameter space
         
-        for lclBasis=1:numBasisFns
-            i=bsFnConn(lclBasis);
-            [N(lclBasis) dN(lclBasis)]=NURBSbasis(i, p, xi_param, knotVec, controlPts(:,3)' );
-        end
+        [Ndisp Ngeom dNgeom] = getDispAndGeomBasis(xi_param, NURBScurve, element);
         
-        [jacob_xi, normals, r, dr, drdn] = getKernelParameters( elcoords, collocCoords, N, dN );
+        [jacob_xi, normals, r, dr, drdn] = getKernelParameters( elcoords, collocCoords, Ngeom, dNgeom );
         jacob=jacob_xi*jacob_param;     % the final jacobian we use
         
         Ttemp=zeros(2,2); Utemp=zeros(2,2);
@@ -34,7 +32,7 @@ function [Gsubmatrix] = integrateGsubmatrix_Telles(ngp, elcoords, bsFnConn, coll
             end
         end
         jacobTelles=3* ((gXi-gamBar).^2) / (1+3*gamBar.^2);
-        Gsubmatrix=Gsubmatrix + [N(1)*Utemp N(2)*Utemp N(3)*Utemp]*jacob*gwt(pt)*jacobTelles;
+        Gsubmatrix=Gsubmatrix + [Ndisp(1)*Utemp Ndisp(2)*Utemp Ndisp(3)*Utemp]*jacob*gwt(pt)*jacobTelles;
 
     end
 end

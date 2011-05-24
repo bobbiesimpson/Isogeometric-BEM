@@ -43,7 +43,7 @@ function [ NURBScurve ] = generateBEMmesh( p, refinement )
 %                 0 0];
 
 % Crack problem
-delta = 2;
+delta = 0;
 crackUpper = 5 + delta;
 crackLower = 5 - delta;
 upperCPt = (10 + crackUpper)/2; lowerCPt = (0 + crackLower)/2;
@@ -55,7 +55,7 @@ controlPts = [ 0 0; 5 0; 10 0; 10 5; 10 10; 5 10; 0 10; 0 upperCPt; 0 crackUpper
 
 knotVec = knotVec/max(knotVec);
 weights = ones(1,size(controlPts,1));
-
+weights(2) = 3;
 controlPts = [controlPts weights'];
 
 uniqueKnots=unique(knotVec);
@@ -116,7 +116,8 @@ end
 % --------------------------------------------------------
 
 if refinement==1
-    % we split the element just before and after the crack entrance by
+    
+    % We have one element/line: split the element just before and after the crack entrance by
     % inserting a knot three times
     
     crackEntIndex = find(knotVec==4/7,1);       % point where crack begins
@@ -125,7 +126,7 @@ if refinement==1
     newKnots = [mean(knotVec(crackEntIndex-1:crackEntIndex))*ones(1,3) ...
         mean(knotVec(crackExIndex:crackExIndex+1))*ones(1,3)];
 else
-    % we decrease the continuity at the element boundary just before and
+    % We have > 1 element/line:  decrease the continuity at the element boundary just before and
     % after the crack entrance by inserting a knot twice
     
     xiIndex1 = find(knotVec < 4/7,1,'last');       % point where crack begins
@@ -144,9 +145,26 @@ uniqueKnots=unique(knotVec);
 % ------------- Create structs of NURBScurves ------------
 % --------------------------------------------------------
 
+% NURBScurve
+%   |
+%   ------ knotVec      :   The knot vector for the curve
+%   ------ controlPts   :   The control points for the curve
+%   ------ ne           :   The number of elements on the curve
+%   ------ elRange      :   [knotmin,knotMax] ie The min and max knot values
+%   ------ elConn       :   Connectivity matrix of CONTROL POINTS
+%   ------ dispConn     :   Connectivity matrix of DISPLACEMENT NODES
+%   ------ tracConn     :   Connectivity matrix of TRACTION NODES
+%   ------ tracDispConn :   Connectivity matrix for TRACTION NODES to DISPLACEMENT NODES
+%   ------ bsFnConn     :   Connectivity matrix basis functions
+
+
 NURBScurve = struct('knotVec', [], 'controlPts', [], 'ne', {}, 'elRange', [],...
-                    'elConn', [], 'tracConn', [], 'tracDispConn', []);
+                    'elConn', [], 'dispConn', [], 'tracConn', [], 'tracDispConn', [],...
+                    'bsFnConn', [], 'curveType', {});
 NURBScurve(3).knotVec = [];
+
+
+% split the knot vector into the three NURBScurves
 
 index1 = 1:find(knotVec==newKnots(1),1,'last');   % 
 ctPtIndex1 = 1:length(index1)-p-1;
@@ -172,10 +190,10 @@ NURBScurve(3).controlPts = controlPts(ctPtIndex3,:);
 
 % loop over each NURBS curve
 
-
 previousKnotVal = 0;
-dispDofCounter = 0;
+cpDofCounter = 0;
 tracDofCounter = 0;
+dispDofCounter = 0;
 
 for curve=1:size(NURBScurve,2)
     
@@ -183,15 +201,23 @@ for curve=1:size(NURBScurve,2)
     
     ne = length(uniqueKnots)-1;
     knotVec = NURBScurve(curve).knotVec;
+    elKnotIndices=zeros(ne,2);
     
-    NURBScurve(curve).ne=ne;   % number of elements
+    NURBScurve(curve).ne=ne;                      % number of elements
     NURBScurve(curve).elRange=zeros(ne,2);        % initialise matrices
     NURBScurve(curve).elConn=zeros(ne,p+1);
-    elKnotIndices=zeros(ne,2);
+    NURBScurve(curve).dispConn=zeros(ne,p+1);
     NURBScurve(curve).tracConn=zeros(ne,p+1);
+    NURBScurve(curve).bsFnConn = zeros(ne, p+1);
+    
+    % if we are on curve 2 we have a crack, otherwise a NURBS surface
+    if curve == 2
+        NURBScurve(curve).curveType = 'crack';
+    else
+        NURBScurve(curve).curveType = 'NURBS';
+    end
     
     element = 1;
-    
     % first determine our element ranges
     for i=1:length(knotVec)
         currentKnotVal=knotVec(i);
@@ -203,38 +229,68 @@ for curve=1:size(NURBScurve,2)
         previousKnotVal=currentKnotVal;
     end
     
-    
-    % determine our element ranges and the corresponding knot indices
-    numRepeatedKnots=0;
-
-    % generate our connectivity matrices for disps and tractions
-    for e=1:ne
-        indices=(elKnotIndices(e,1)-p+1):elKnotIndices(e,1);
-        previousKnotVals=knotVec(indices);
-        currentKnotVals=ones(1,p)*knotVec(elKnotIndices(e,1));
-        if isequal(previousKnotVals,currentKnotVals) && e~=1;
-            numRepeatedKnots=numRepeatedKnots+1;
-        end
-        NURBScurve(curve).elConn(e,:)=((elKnotIndices(e,1)-p):elKnotIndices(e,1)) + dispDofCounter;
-        NURBScurve(curve).tracConn(e,:)=((elKnotIndices(e,1)-p):elKnotIndices(e,1)) + ...
-                                        numRepeatedKnots + tracDofCounter;
+    % depending on whether or not we are on a crack , we create the
+    % connctivity matrices
+    switch NURBScurve(curve).curveType
+        
+        case 'crack'
+            % ---------------------------------------
+            % --------- we are on a crack -----------
+            % ---------------------------------------
+            for e=1:ne
+                NURBScurve(curve).elConn(e,:)=((elKnotIndices(e,1)-p):elKnotIndices(e,1)) + cpDofCounter;
+                NURBScurve(curve).bsFnConn(e,:) = ((elKnotIndices(e,1)-p):elKnotIndices(e,1));
+                NURBScurve(curve).dispConn(e,:) = ((e*3-2):(e*3)) + dispDofCounter;
+                NURBScurve(curve).tracConn(e,:)=  ((e*3-2):(e*3)) + tracDofCounter;   
+            end
+            
+        case 'NURBS'
+            
+            % ---------------------------------------
+            % --------- we are on a NURBS -----------
+            % ---------------------------------------
+            
+            % determine our element ranges and the corresponding knot indices
+            numRepeatedKnots=0;
+            
+            % generate our connectivity matrices for disps and tractions
+            for e=1:ne
+                % this calculates the number of repeated knots before the current
+                % element (required for tracConn)
+                indices=(elKnotIndices(e,1)-p+1):elKnotIndices(e,1);
+                previousKnotVals=knotVec(indices);
+                currentKnotVals=ones(1,p)*knotVec(elKnotIndices(e,1));
+                if isequal(previousKnotVals,currentKnotVals) && e~=1;
+                    numRepeatedKnots=numRepeatedKnots+1;
+                end
+                NURBScurve(curve).elConn(e,:)=((elKnotIndices(e,1)-p):elKnotIndices(e,1)) + cpDofCounter;
+                NURBScurve(curve).bsFnConn(e,:) = ((elKnotIndices(e,1)-p):elKnotIndices(e,1));
+                NURBScurve(curve).tracConn(e,:)=((elKnotIndices(e,1)-p):elKnotIndices(e,1)) + ...
+                    numRepeatedKnots + tracDofCounter;
+                NURBScurve(curve).dispConn(e,:) = ((elKnotIndices(e,1)-p):elKnotIndices(e,1)) + dispDofCounter;
+            end
+            
+        otherwise
+            break;
     end
-    NURBScurve(curve).bsFnConn=NURBScurve(curve).elConn;
-    
-    dispDofCounter = NURBScurve(curve).elConn(end,end)-1;
-    tracDofCounter = NURBScurve(curve).tracConn(end,end);
-    
+
     % create connectivity matrix for traction -> disp DOF
     totalTractionDOF=length(knotVec)-p-1+numRepeatedKnots;
     NURBScurve(curve).tracDispConn=zeros(totalTractionDOF,1);
+
     for e=1:ne
-        NURBScurve(curve).tracDispConn(NURBScurve(curve).tracConn(e,:)) = ...
-                                                        NURBScurve(curve).elConn(e,:);
+        NURBScurve(curve).tracDispConn(NURBScurve(curve).tracConn(e,:)-tracDofCounter) = ...
+                                                NURBScurve(curve).dispConn(e,:);
     end
     
+    cpDofCounter = NURBScurve(curve).elConn(end,end)-1;
+    dispDofCounter = NURBScurve(curve).dispConn(end,end)-1;
+    tracDofCounter = NURBScurve(curve).tracConn(end,end)-1;
 end
 
 NURBScurve(curve).elConn(end,end)=1;  % the last point is equal to the first point
+NURBScurve(curve).dispConn(end,end)=1;  % the last point is equal to the first point
+NURBScurve(curve).tracDispConn(end,end)=1;
 
 % ------------------------------------------
 % ------- Generate the collocation points--- 
@@ -245,19 +301,61 @@ NURBScurve(curve).elConn(end,end)=1;  % the last point is equal to the first poi
 % curve
 
 for curve=1:size(NURBScurve,2)      % loop over curves
-        
+    
     knotVec = NURBScurve(curve).knotVec;
     controlPts = NURBScurve(curve).controlPts;
-    NURBScurve(curve).collocPts = zeros(1,length(knotVec) - p -2);
-    NURBScurve(curve).collocCoords = zeros(length(knotVec) - p -2,2);
     
-    for i=1:length(knotVec)-p-2
-        
-        xi = sum(knotVec((i+1):(i+p)))/p;
-        NURBScurve(curve).collocPts(i) = xi;
-        
-        NURBScurve(curve).collocCoords(i,1) = NURBSinterpolation(xi, p, knotVec, controlPts(:,1)', controlPts(:,3)');
-        NURBScurve(curve).collocCoords(i,2) = NURBSinterpolation(xi, p, knotVec, controlPts(:,2)', controlPts(:,3)');
+    switch NURBScurve(curve).curveType
+        case 'crack'
+
+            numEls = NURBScurve(curve).ne;
+            
+            NURBScurve(curve).collocPts = zeros(1,numEls*3-1);
+            NURBScurve(curve).collocCoords = zeros(numEls*3-1,2);
+            
+            for e=1:numEls
+                switch e
+                    case 1
+                        % Semi-dicontinuous |o--o--o--|
+                        xi = [0 1/2 5/6];
+                    case numEls
+                        % Semi-discontinuous |--o--o--o|
+                        
+                        % We leave out the last point since it will be
+                        % include in the next NURBS curve
+                        xi = [1/6 1/2];  
+                    otherwise
+                        % Discontinuous |--o--o--o--|
+                        xi = [1/6 1/2 5/6];
+                end
+                range = NURBScurve(curve).elRange(e,:);
+                collocPts = (range(2) - range(1)) * xi + range(1);
+                
+                for i=1:length(xi)
+                   NURBScurve(curve).collocPts(e*3-3+i) = collocPts(i);
+                   NURBScurve(curve).collocCoords(e*3-3+i,1) = NURBSinterpolation(collocPts(i), p, ...
+                                                        knotVec, controlPts(:,1)', controlPts(:,3)');
+                   NURBScurve(curve).collocCoords(e*3-3+i,2) = NURBSinterpolation(collocPts(i), p, ...
+                                                        knotVec, controlPts(:,2)', controlPts(:,3)');
+                end
+                
+            end
+            
+        case 'NURBS'
+
+            NURBScurve(curve).collocPts = zeros(1,length(knotVec) - p -2);
+            NURBScurve(curve).collocCoords = zeros(length(knotVec) - p -2,2);
+            
+            for i=1:length(knotVec)-p-2          
+                xi = sum(knotVec((i+1):(i+p)))/p;
+                NURBScurve(curve).collocPts(i) = xi;
+                
+                NURBScurve(curve).collocCoords(i,1) = NURBSinterpolation(xi, p, knotVec, controlPts(:,1)', controlPts(:,3)');
+                NURBScurve(curve).collocCoords(i,2) = NURBSinterpolation(xi, p, knotVec, controlPts(:,2)', controlPts(:,3)');
+            end
+            
+        otherwise
+            fprintf('Shouldnt get here\n');
 
     end
     
@@ -334,8 +432,8 @@ axis equal
 % plot(x,y,'g--')
 % hold off; axis equal
 
-%legend('Original geometry','Control points', 'Collocation points', 'Element edges')
-
+%legend('Original geometry','Control points', 'Collocation points',
+%'Element edges')
 
 end
 

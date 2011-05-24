@@ -5,7 +5,7 @@ clear all
 clc
 
 
-knot=[0 0 0 1 2 2 2 ];
+knot=[0 0 0 1 2 3 4 5 5 5];
 xi=0:0.01:max(knot);
 numPts=numel(xi);
 m = numel(knot)-1;
@@ -14,7 +14,7 @@ n = m - p;
 weights = ones(1,n);
 weights(2) = 1;
 
-points = [0 10; 2 7; 7 7; 10 8];
+points = [48 0; 50 3; 47 7; 40 10; 33 7; 30 3; 32 0];
 interpolatedPoints = zeros(numPts,2);
 % weights(4) =1;
 % weights(6) =1;
@@ -38,7 +38,7 @@ plot(xi, NURBSderivs)
 
 for c=1:numPts
     [interpolatedPoints(c,1)] = NURBSinterpolation(xi(c), p, knot, points(:,1)', weights);
-    [interpolatedPoints(c,2)] = NURBSinterpolation(xi(c), p, knot, points(:,2)', weights);      
+    [interpolatedPoints(c,2  )] = NURBSinterpolation(xi(c), p, knot, points(:,2)', weights);      
 end
 
 figure(3)
