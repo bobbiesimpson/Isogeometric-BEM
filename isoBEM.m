@@ -43,7 +43,7 @@ if infinitePlate
     tractionY=0;
 else
     tractionX=0;   % presribed traction on upper and left surfaces
-    tractionY=-10;
+    tractionY=1000;
 end
 
 % ------------------------------------
@@ -178,7 +178,7 @@ for mesh=2:inc:numMeshes
     
     soln=A\z;   % and solve
     
-    displacements=zeros(nDof,1);
+    displacement=zeros(nDof,1);
     displacement(presDispDOFs)=dirichletVals;
     displacement(unknownDispDofs)=soln(unknownDispDofs);
 

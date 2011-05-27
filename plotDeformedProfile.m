@@ -7,7 +7,7 @@ global p knotVec
 
 factor=10; % for exaggerating displacements
 
-newControlPts=controlPts(1:nPts,1:2)+factor*[displacement(1:2:end)' displacement(2:2:end)'];
+newControlPts=controlPts(1:nPts,1:2)+factor*[displacement(1:2:end) displacement(2:2:end)];
 newControlCoords=[newControlPts; newControlPts(1,:)];   % add first entry again (for plotting)
 
 numPts=400;

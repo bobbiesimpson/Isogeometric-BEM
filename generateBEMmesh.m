@@ -29,16 +29,25 @@ function [ controlPts, knotVec, collocPts, collocCoords, bsFnConn, elConn, tracC
 
 
 % Spanner problem
-knotVec = [0 0 0 1 1 2 2 3 3 4 5 6 6 7 7 8 9 10 10 11 11 12 12 13 13 13];
-controlPts = [ 0 0; -0.5 -0.5; -1 -1; -1.5, -1; -2 -1;...
-               -2 -1.25; -2 -1.5; -1 -3; 1 -1; 5 -1; 10 -1; 10 0;...
-               10 1; 5 1; 1 1; -1 3; -2 1.5; -2 1.25; -2 1; ...
-               -1.5 1; -1 1; -0.5 0.5; 0 0];
+% knotVec = [0 0 0 1 1 2 2 3 3 4 5 6 6 7 7 8 9 10 10 11 11 12 12 13 13 13];
+% controlPts = [ 0 0; -0.5 -0.5; -1 -1; -1.5, -1; -2 -1;...
+%                -2 -1.25; -2 -1.5; -1 -3; 1 -1; 5 -1; 10 -1; 10 0;...
+%                10 1; 5 1; 1 1; -1 3; -2 1.5; -2 1.25; -2 1; ...
+%                -1.5 1; -1 1; -0.5 0.5; 0 0];
+%            
+% Uniaxial tension
+
+knotVec = [ 0 0 0 1 1 2 2 3 3 4 4 4];
+controlPts = [ 0 0; 5 0; 10 0; 10 5; 10 10; 5 10; 0 10; 0 5;
+                0 0];
  
 knotVec = knotVec/max(knotVec);
 weights = ones(1,size(controlPts,1));
-weights(9)=2;
-weights(15)=2;
+
+% some spanner weight adjustment
+% weights(9)=2;
+% weights(15)=2;
+
 controlPts = [controlPts weights'];
 
 uniqueKnots=unique(knotVec);
