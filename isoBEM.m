@@ -15,7 +15,7 @@ addpath C_files/
 % ------------------------------------
 
 global E mu const3 const4 const2 const1 shearMod kappa
-global p knotVec controlPts elRange
+global p knotVec controlPts elRange bsFnConn dispConn tracConn
 
 % assume plane strain for this example
 
