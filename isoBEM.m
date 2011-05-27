@@ -73,6 +73,7 @@ for mesh=2:inc:numMeshes
     
     dispDofs=(1:max(dispConn(end,:))*2)';     % all the DOFs (each node has x and y components)
     tracDofs=(1:max(tracConn(end,:))*2)';
+    tracNdof = length(tracDofs);
     
     [ presDispDOFs, presTracDOFs, dirichletVals, nonZeroXTracDOFs, nonZeroYTracDOFs ]=assignDirichletAndNeumannNodes(refinement, dispConn, tracConn);
     
@@ -183,6 +184,15 @@ for mesh=2:inc:numMeshes
     displacement(unknownDispDofs)=soln(unknownDispDofs);
 
     soln(globalTracUnknownDOF)=soln(globalTracUnknownDOF)*SF;  % multiply the tractions by the scale factor
+    
+    traction = zeros(tracNdof,1);
+    traction(nonZeroXTracDOFs) = tractionX;
+    traction(nonZeroYTracDOFs) = tractionY;
+    traction(unknownTracDofs) = soln(mappedTractionDofs);
+    
+    point = [5 5];
+    keyboard
+    stress = findInternalStress( displacement, traction, point, ne );
     
     % plot the deformed profile
     plotDeformedProfile( displacement, nPts, controlPts, tractionAtInfinity )
