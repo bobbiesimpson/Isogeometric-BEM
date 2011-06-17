@@ -16,7 +16,6 @@ addpath C_files/
 
 global E mu const3 const4 const2 const1 shearMod kappa
 global p knotVec controlPts elRange bsFnConn dispConn tracConn
-
 % assume plane strain for this example
 
 E=1e5;
@@ -52,13 +51,13 @@ end
 
 p=2;        % degree of basis functions
 
-numMeshes=2; inc=5;
+numMeshes=4; inc=5;
 
 L2relNorm=zeros(ceil(numMeshes/inc),2);
 
 meshCounter=0;
 
-for mesh=2:inc:numMeshes
+for mesh=4:inc:numMeshes
     meshCounter=meshCounter+1;
     refinement=mesh;
     [ controlPts, knotVec, collocPts, collocCoords, bsFnConn, dispConn, tracConn, elRange, tracDispConn ]=generateBEMmesh( p, refinement );
@@ -85,8 +84,8 @@ for mesh=2:inc:numMeshes
     % ------- IsoBEM analysis -----------
     % -----------------------------------
     
-    ngp_s=12;       % # gauss points for singular integrals
-    ngp_r=12;        % # gauss points for regular integrals
+    ngp_s=6;       % # gauss points for singular integrals
+    ngp_r=6;        % # gauss points for regular integrals
     
     H=zeros(nDof,nDof);             % initialise our global matrices
     A=zeros(nDof,nDof);
@@ -189,10 +188,6 @@ for mesh=2:inc:numMeshes
     traction(nonZeroXTracDOFs) = tractionX;
     traction(nonZeroYTracDOFs) = tractionY;
     traction(unknownTracDofs) = soln(mappedTractionDofs);
-    
-    point = [5 5];
-    keyboard
-    stress = findInternalStress( displacement, traction, point, ne );
     
     % plot the deformed profile
     plotDeformedProfile( displacement, nPts, controlPts, tractionAtInfinity )
