@@ -4,7 +4,7 @@
 
 clc
 clear all
-close all
+%close all
 
 addpath C_files/
 
@@ -42,7 +42,7 @@ if infinitePlate
     tractionY=0;
 else
     tractionX=0;   % presribed traction on upper and left surfaces
-    tractionY=1000;
+    tractionY=-10;
 end
 
 % ------------------------------------
@@ -84,8 +84,8 @@ for mesh=4:inc:numMeshes
     % ------- IsoBEM analysis -----------
     % -----------------------------------
     
-    ngp_s=6;       % # gauss points for singular integrals
-    ngp_r=6;        % # gauss points for regular integrals
+    ngp_s=12;       % # gauss points for singular integrals
+    ngp_r=12;        % # gauss points for regular integrals
     
     H=zeros(nDof,nDof);             % initialise our global matrices
     A=zeros(nDof,nDof);

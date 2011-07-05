@@ -102,89 +102,89 @@ function [ presDispDOFs, presTracDOFs, dirichletVals, nonZeroXTracDOFs, nonZeroY
 
 % prescribe our Dirichlet nodes
 
-% elms=[1 12] *n + 1;
-% sctrX = elConn(elms,1);
-% sctrX=reshape(sctrX,1,numel(sctrX));
-% 
-% elms=[1 2 11 12]*n + 1;
-% sctrY = elConn(elms,1);
-% sctrY=reshape(sctrY,1,numel(sctrY));
-% 
-% presDispDOFs=sort([sctrX*2-1 sctrY*2]);
-% dirichletVals=zeros(1,length(presDispDOFs));
-% 
-% % Now let's prescribe our tractions - this is everywhere except the two
-% % dirichlet nodes
-% tracEndElms = [1 12]*n;
-% tracStartElms = tracEndElms + 1;
-% sctrX = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
-% sctrX = reshape(sctrX,1, numel(sctrX));
-% 
-% tracEndElms = [1 2 11 12]*n;
-% tracStartElms = tracEndElms + 1;
-% sctrY = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
-% sctrY = reshape(sctrY,1, numel(sctrY));
-% 
-% allTracDOFs = 1:2*max(tracConn(:,end));
-% presTracDOFs = setxor(allTracDOFs, [sctrX*2-1 sctrY*2]);
-% 
-% % and our non-zero trac DOF 
-% prevElmt=6*n;
-% tracElms = 6*n+1:7*n;
-% procElmt=7*n+1;
-% rightSideDOF = unique(reshape(tracConn(tracElms,:),1,numel(tracConn(tracElms,:))));
-% sctrY = [tracConn(prevElmt,end) rightSideDOF tracConn(procElmt,1)];
-% 
-% % and now get the nonzero x and y tractions
-% nonZeroYTracDOFs = sctrY*2;
-% nonZeroXTracDOFs = [];
+elms=[1 12] *n + 1;
+sctrX = elConn(elms,1);
+sctrX=reshape(sctrX,1,numel(sctrX));
 
-%% uniaxial tension
-
-% first prescribe out dirichlet nodes
-elms=1:n;    
-sctrY=elConn(elms,:);
-sctrY=unique(reshape(sctrY,1,numel(sctrY)));
-
-% x-disps
-elms=3*n+1:4*n;
-sctrX=elConn(elms,:);
-sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+elms=[1 2 11 12]*n + 1;
+sctrY = elConn(elms,1);
+sctrY=reshape(sctrY,1,numel(sctrY));
 
 presDispDOFs=sort([sctrX*2-1 sctrY*2]);
 dirichletVals=zeros(1,length(presDispDOFs));
 
+% Now let's prescribe our tractions - this is everywhere except the two
+% dirichlet nodes
+tracEndElms = [1 12]*n;
+tracStartElms = tracEndElms + 1;
+sctrX = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
+sctrX = reshape(sctrX,1, numel(sctrX));
 
-% and now for the tractions
+tracEndElms = [1 2 11 12]*n;
+tracStartElms = tracEndElms + 1;
+sctrY = [tracConn(tracEndElms,end) tracConn(tracStartElms,1)];
+sctrY = reshape(sctrY,1, numel(sctrY));
 
-% x-tracs
-elms=1:3*n;
-sctrX=tracConn(elms,:);
-sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+allTracDOFs = 1:2*max(tracConn(:,end));
+presTracDOFs = setxor(allTracDOFs, [sctrX*2-1 sctrY*2]);
 
-%firstNode=1;
-%sctrX = setxor(sctrX,firstNode);
+% and our non-zero trac DOF 
+prevElmt=6*n;
+tracElms = 6*n+1:7*n;
+procElmt=7*n+1;
+rightSideDOF = unique(reshape(tracConn(tracElms,:),1,numel(tracConn(tracElms,:))));
+sctrY = [tracConn(prevElmt,end) rightSideDOF tracConn(procElmt,1)];
 
-% y-tracs
-elms=(n+1):(4*n);
-sctrY=tracConn(elms,:);
-sctrY=unique(reshape(sctrY,1,numel(sctrY)));
+% and now get the nonzero x and y tractions
+nonZeroYTracDOFs = sctrY*2;
+nonZeroXTracDOFs = [];
 
-%lastNode=tracConn(end,end);
-%sctrY = setxor(sctrY,lastNode);
+%% uniaxial tension
 
-presTracDOFs=sort([sctrX*2-1 sctrY*2]);
-
-% work out the traction DOFs where we specify a nonzero traction
-
-% nonzero y-tractions
-elms=(2*n+1):3*n;
-sctrY=tracConn(elms,:);
-sctrY=reshape(sctrY,1,numel(sctrY));
-nonZeroYTracDOFs=unique(sctrY*2);
-
-% nonzero x-tractions
-nonZeroXTracDOFs=[];
+% % first prescribe out dirichlet nodes
+% elms=1:n;    
+% sctrY=elConn(elms,:);
+% sctrY=unique(reshape(sctrY,1,numel(sctrY)));
+% 
+% % x-disps
+% elms=3*n+1:4*n;
+% sctrX=elConn(elms,:);
+% sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+% 
+% presDispDOFs=sort([sctrX*2-1 sctrY*2]);
+% dirichletVals=zeros(1,length(presDispDOFs));
+% 
+% 
+% % and now for the tractions
+% 
+% % x-tracs
+% elms=1:3*n;
+% sctrX=tracConn(elms,:);
+% sctrX=unique(reshape(sctrX,1,numel(sctrX)));
+% 
+% %firstNode=1;
+% %sctrX = setxor(sctrX,firstNode);
+% 
+% % y-tracs
+% elms=(n+1):(4*n);
+% sctrY=tracConn(elms,:);
+% sctrY=unique(reshape(sctrY,1,numel(sctrY)));
+% 
+% %lastNode=tracConn(end,end);
+% %sctrY = setxor(sctrY,lastNode);
+% 
+% presTracDOFs=sort([sctrX*2-1 sctrY*2]);
+% 
+% % work out the traction DOFs where we specify a nonzero traction
+% 
+% % nonzero y-tractions
+% elms=(2*n+1):3*n;
+% sctrY=tracConn(elms,:);
+% sctrY=reshape(sctrY,1,numel(sctrY));
+% nonZeroYTracDOFs=unique(sctrY*2);
+% 
+% % nonzero x-tractions
+% nonZeroXTracDOFs=[];
 
 
 end

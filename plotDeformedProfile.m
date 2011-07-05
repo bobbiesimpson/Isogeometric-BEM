@@ -15,28 +15,27 @@ newControlPts=controlPts(1:nPts,1:2)+factor*[displacement(1:2:end) displacement(
 newControlCoords=[newControlPts; newControlPts(1,:)];   % add first entry again (for plotting)
 
 figure(2); hold on
-plot(controlPts(1:nPts,1), controlPts(1:nPts,2), 'ko', newControlPts(:,1), newControlPts(:,2), 'ro')
-hold off
+grid on; axis equal
+plot(controlPts(1:nPts,1), controlPts(1:nPts,2), 'ko', newControlPts(:,1), newControlPts(:,2), 'bo')
 
 % -------------------------------------------
 % ------- Plot the deformed profile ---------
 % -------------------------------------------
 % 
-% numPts=400;
-% 
-% xi=linspace(0,max(knotVec),numPts);
-% 
-% extrapPoints = zeros(numPts,2); x = zeros(numPts,1); y=zeros(numPts,1);
-% for point=1:numPts
-%     [extrapPoints(point,1)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,1)', controlPts(:,3)');
-%     [extrapPoints(point,2)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,2)', controlPts(:,3)');  
-%     x(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,1)', controlPts(:,3)');
-%     y(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,2)', controlPts(:,3)');
-% end
-% 
-% figure(2); hold on
-% plot(extrapPoints(:,1), extrapPoints(:,2), 'k--')
-% hold off
+numPts=400;
+
+xi=linspace(0,max(knotVec),numPts);
+
+extrapPoints = zeros(numPts,2); x = zeros(numPts,1); y=zeros(numPts,1);
+for point=1:numPts
+    [extrapPoints(point,1)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,1)', controlPts(:,3)');
+    [extrapPoints(point,2)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,2)', controlPts(:,3)');  
+    x(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,1)', controlPts(:,3)');
+    y(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,2)', controlPts(:,3)');
+end
+
+plot(extrapPoints(:,1), extrapPoints(:,2), 'k--')
+hold off
 
 % -------------------------------------------
 
