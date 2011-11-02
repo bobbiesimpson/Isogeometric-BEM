@@ -6,3 +6,4 @@
 *.mexmaci64
 *.fig
 *.mex*
+C_files/dat_files
