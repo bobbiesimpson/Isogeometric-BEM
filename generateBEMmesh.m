@@ -29,24 +29,24 @@ function [ controlPts, knotVec, collocPts, collocCoords, bsFnConn, elConn, tracC
 
 
 % Spanner problem
-knotVec = [0 0 0 1 1 2 2 3 3 4 5 6 6 7 7 8 9 10 10 11 11 12 12 13 13 13];
-controlPts = [ 0 0; -0.5 -0.5; -1 -1; -1.5, -1; -2 -1;...
-               -2 -1.25; -2 -1.5; -1 -3; 1 -1; 5 -1; 10 -1; 10 0;...
-               10 1; 5 1; 1 1; -1 3; -2 1.5; -2 1.25; -2 1; ...
-               -1.5 1; -1 1; -0.5 0.5; 0 0];
-%            
-% Uniaxial tension
+% knotVec = [0 0 0 1 1 2 2 3 3 4 5 6 6 7 7 8 9 10 10 11 11 12 12 13 13 13];
+% controlPts = [ 0 0; -0.5 -0.5; -1 -1; -1.5, -1; -2 -1;...
+%                -2 -1.25; -2 -1.5; -1 -3; 1 -1; 5 -1; 10 -1; 10 0;...
+%                10 1; 5 1; 1 1; -1 3; -2 1.5; -2 1.25; -2 1; ...
+%                -1.5 1; -1 1; -0.5 0.5; 0 0];
+           
+%Uniaxial tension
 
-% knotVec = [ 0 0 0 1 1 2 2 3 3 4 4 4];
-% controlPts = [ 0 0; 5 0; 10 0; 10 5; 10 10; 5 10; 0 10; 0 5;
-%                 0 0];
+knotVec = [ 0 0 0 1 1 2 2 3 3 4 4 4];
+controlPts = [ 0 0; 5 0; 10 0; 10 5; 10 10; 5 10; 0 10; 0 5;
+                0 0];
  
 knotVec = knotVec/max(knotVec);
 weights = ones(1,size(controlPts,1));
 
 % some spanner weight adjustment
-weights(9)=2;
-weights(15)=2;
+% weights(9)=2;
+% weights(15)=2;
 
 controlPts = [controlPts weights'];
 
@@ -154,37 +154,37 @@ end
 % ------- Plot the mesh - -----------
 % -----------------------------------
 
-% 
-% xi=linspace(0,max(knotVec),10);
-% 
-% n=size(xi,2);
-numBasisFns=length(knotVec)-1-p;
-% NURBSvalues=zeros(n,numBasisFns);
-% NURBSderivVals=zeros(n,numBasisFns);
-collocPts=zeros(1,numBasisFns);
-% r=zeros(n,numBasisFns);
 
-% figure(1); grid on
+xi=linspace(0,max(knotVec),1000);
+
+n=size(xi,2);
+numBasisFns=length(knotVec)-1-p;
+NURBSvalues=zeros(n,numBasisFns);
+NURBSderivVals=zeros(n,numBasisFns);
+collocPts=zeros(1,numBasisFns);
+r=zeros(n,numBasisFns);
+
+figure(1); grid on
 
 for i=1:numBasisFns
 
     collocPts(i)=sum(knotVec((i+1):(i+p)))/p;
     
-%     for point=1:n
-%         [N dN] = NURBSbasis(i,p,xi(point),knotVec,controlPts(:,3)');
-%         NURBSvalues(point,i)=N;
-%         NURBSderivVals(point,i)=dN;
-%         r(point,i)=abs(collocPts(i)-xi(point));
-%     end
-%     
-%     hold on
-%     plot(xi,NURBSvalues(:,i), 'k-', collocPts(i), 0, 'kx', uniqueKnots,0,'ks')
-%     hold off
+    for point=1:n
+        [N dN] = NURBSbasis(i,p,xi(point),knotVec,controlPts(:,3)');
+        NURBSvalues(point,i)=N;
+        NURBSderivVals(point,i)=dN;
+        r(point,i)=abs(collocPts(i)-xi(point));
+    end
+    
+    hold on
+    plot(xi,NURBSvalues(:,i), 'k-', collocPts(i), 0, 'kx', uniqueKnots,0,'ks')
+    hold off
 
 end
 
 
-% legend('NURBS basis functions', 'collocation points', 'element edges')
+legend('NURBS basis functions', 'collocation points', 'element edges')
 
 
 % ---------------------------------------------------------
@@ -198,7 +198,7 @@ for point=1:(numBasisFns)
     collocCoords(point,2)=NURBSinterpolation(collocPts(point), p, knotVec, controlPts(:,2)', controlPts(:,3)');
 end
 % 
-% NURBSCoords=NURBSvalues*controlPts;
+NURBSCoords=NURBSvalues*controlPts;
 
 % trim off last entries
 collocCoords=collocCoords(1:(end-1),:);
@@ -208,12 +208,12 @@ collocPts=collocPts(1:(end-1));
 % ------- Get the element points ------------
 % -------------------------------------------
 
-% knotCoords=zeros(length(uniqueKnots),2);
-% for point=1:(length(knotCoords)-1)   
-%     knotCoords(point,1)=NURBSinterpolation(uniqueKnots(point), p, knotVec, controlPts(:,1)', controlPts(:,3)');
-%     knotCoords(point,2)=NURBSinterpolation(uniqueKnots(point), p, knotVec, controlPts(:,2)', controlPts(:,3)');
-% 
-% end
+knotCoords=zeros(length(uniqueKnots),2);
+for point=1:(length(knotCoords)-1)   
+    knotCoords(point,1)=NURBSinterpolation(uniqueKnots(point), p, knotVec, controlPts(:,1)', controlPts(:,3)');
+    knotCoords(point,2)=NURBSinterpolation(uniqueKnots(point), p, knotVec, controlPts(:,2)', controlPts(:,3)');
+
+end
 
 % ---------------------------------------------------------
 % ------- Plot the mesh and collocation points ------------
@@ -221,13 +221,13 @@ collocPts=collocPts(1:(end-1));
 % 
 
 
-% figure(2); grid on
-% hold on
-% plot(NURBSCoords(:,1), NURBSCoords(:,2), 'k-', controlPts(:,1), controlPts(:,2), 'ro') 
-% plot(collocCoords(:,1), collocCoords(:,2), 'kx', 'MarkerSize', 10)
-% plot(knotCoords(:,1), knotCoords(:,2), 'ks', 'MarkerSize', 6)
-% hold off
-% axis equal
+figure(2); grid on
+hold on
+plot(NURBSCoords(:,1), NURBSCoords(:,2), 'k-', controlPts(:,1), controlPts(:,2), 'ro') 
+plot(collocCoords(:,1), collocCoords(:,2), 'kx', 'MarkerSize', 10)
+plot(knotCoords(:,1), knotCoords(:,2), 'ks', 'MarkerSize', 6)
+hold off
+axis equal
 
 
 % 

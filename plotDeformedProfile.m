@@ -5,7 +5,7 @@ function plotDeformedProfile( displacement, nPts, controlPts, infTraction )
 
 global p knotVec 
 
-factor=10; % for exaggerating displacements
+factor=1000; % for exaggerating displacements
 
 % -----------------------------------------------------------------
 % ------- Plot the undeformed and deformed control points ---------

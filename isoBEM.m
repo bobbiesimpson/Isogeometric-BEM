@@ -4,7 +4,7 @@
 
 clc
 clear all
-%close all
+close all
 
 addpath C_files/
 
@@ -41,7 +41,7 @@ if infinitePlate
     tractionX=0;
     tractionY=0;
 else
-    tractionX=0;   % presribed traction on upper and left surfaces
+    tractionX=10;   % presribed traction on upper and left surfaces
     tractionY=-10;
 end
 
@@ -51,13 +51,13 @@ end
 
 p=2;        % degree of basis functions
 
-numMeshes=4; inc=5;
+numMeshes=1; inc=5;
 
 L2relNorm=zeros(ceil(numMeshes/inc),2);
 
 meshCounter=0;
 
-for mesh=4:inc:numMeshes
+for mesh=1:inc:numMeshes
     meshCounter=meshCounter+1;
     refinement=mesh;
     [ controlPts, knotVec, collocPts, collocCoords, bsFnConn, dispConn, tracConn, elRange, tracDispConn ]=generateBEMmesh( p, refinement );
