@@ -28,8 +28,8 @@ xi=linspace(0,max(knotVec),numPts);
 
 extrapPoints = zeros(numPts,2); x = zeros(numPts,1); y=zeros(numPts,1);
 for point=1:numPts
-    [extrapPoints(point,1)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,1)', controlPts(:,3)');
-    [extrapPoints(point,2)] = NURBSinterpolation(xi(point), p, knotVec, newControlPts(:,2)', controlPts(:,3)');  
+    [extrapPoints(point,1)] = NURBSinterpolation(xi(point), p, knotVec, newControlCoords(:,1)', controlPts(:,3)');
+    [extrapPoints(point,2)] = NURBSinterpolation(xi(point), p, knotVec, newControlCoords(:,2)', controlPts(:,3)');  
     x(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,1)', controlPts(:,3)');
     y(point) = NURBSinterpolation(xi(point), p, knotVec, controlPts(:,2)', controlPts(:,3)');
 end
